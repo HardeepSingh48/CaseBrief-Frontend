@@ -68,7 +68,7 @@ function Message({ content, sources, stateChange }) {
             <div className="rounded-lg px-4 py-3">
               {sources && (
                 <div className="flex items-center gap-5">
-                  <h1 className="dark:text-PrimaryGrayTextDark text-DarkBlue">LawVista AI</h1>
+                  <h1 className="dark:text-PrimaryGrayTextDark text-DarkBlue">CaseBrief AI</h1>
                   <div className="my-4"><TextToSpeech text={content} /></div>
                 </div>
               )}

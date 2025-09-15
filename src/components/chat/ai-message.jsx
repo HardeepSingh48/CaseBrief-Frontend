@@ -15,7 +15,7 @@ import logo from "../../assets/svgs/logo.svg";
           <div>
             <div className=" rounded-lg px-4 py-3">
               {sources && (
-                <h1 className="text-PrimaryGrayTextDark">LawVista AI</h1>
+                <h1 className="text-PrimaryGrayTextDark">CaseBrief AI</h1>
               )}
               <p className="text-gray-200 whitespace-pre-wrap min-w-3xl">{content}</p>
             </div>
