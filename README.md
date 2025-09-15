@@ -1,61 +1,100 @@
-CaseBrief Frontend: AI-Powered Legal Research Assistant
-This is the frontend for CaseBrief, a modern, AI-powered legal research platform. It provides a responsive and intuitive user interface for interacting with legal documents, getting AI-driven insights, and managing research notes.
+# ⚖️ CaseBrief Frontend: AI-Powered Legal Research Assistant
 
-✨ Core Features
-Interactive AI Chat: Engage in a conversation with your legal documents. Ask complex questions in natural language and receive contextually accurate answers.
+CaseBrief Frontend is a modern, **AI-powered legal research platform** that provides a responsive and intuitive interface for interacting with legal documents, extracting insights, and managing research notes.
 
-Dynamic Document Viewer: Upload and view PDF documents seamlessly within the application, with tools for analysis and note-taking.
+---
 
-Automated Insights: Automatically view AI-generated summaries, extracted legal statutes, and predicted case outcomes directly in the sidebar.
+## ✨ Core Features
 
-Integrated Notebook: A built-in feature to create, edit, and organize your research notes, keeping all your work in one place.
+* **Interactive AI Chat**
+  Engage in conversations with your legal documents. Ask complex legal questions in natural language and receive contextually accurate answers.
 
-Secure User Authentication: A complete authentication system with registration and login to keep your research private and secure.
+* **Dynamic Document Viewer**
+  Upload and view PDF documents seamlessly, with tools for **analysis** and **note-taking**.
 
-Responsive Design: A clean and modern UI built with Tailwind CSS that works beautifully on all devices.
+* **Automated Insights**
+  Get **AI-generated summaries**, extracted statutes, and predicted case outcomes directly in the sidebar.
 
-🚀 Technology Stack
-Framework: React
+* **Integrated Notebook**
+  Create, edit, and organize research notes in one centralized place.
 
-Build Tool: Vite
+* **Secure User Authentication**
+  Complete **registration & login system** to keep your research safe and private.
 
-State Management: Redux Toolkit
+* **Responsive Design**
+  Clean and modern UI built with **Tailwind CSS**, optimized for all devices.
 
-Routing: React Router
+---
 
-Styling: Tailwind CSS
+## 🚀 Technology Stack
 
-HTTP Client: Axios
+* **Framework:** React
+* **Build Tool:** Vite
+* **State Management:** Redux Toolkit
+* **Routing:** React Router
+* **Styling:** Tailwind CSS
+* **HTTP Client:** Axios
 
-⚙️ Getting Started
-Prerequisites
-Node.js and npm
+---
 
-The Node.js Backend and Django AI Backend must be running.
+## ⚙️ Getting Started
 
-Installation & Setup
-Clone the Repository:
+### 🔑 Prerequisites
 
-git clone <your-repository-url>
-cd sihfrontend
+* [Node.js](https://nodejs.org/) & npm installed
+* The **Node.js Backend** and **Django AI Backend** must be running
 
-Install Dependencies:
-This project uses some packages with peer dependency conflicts. Use the --legacy-peer-deps flag to resolve them.
+---
 
-npm install --legacy-peer-deps
+### 📥 Installation & Setup
 
-Configure Environment Variables:
-Create a .env file in the root of the sihfrontend directory. This file will tell your frontend where to find the backend servers.
+1. **Clone the Repository**
 
-# URL for the Node.js server
-VITE_NODE_API_URL=http://localhost:4000
+   ```bash
+   git clone <your-repository-url>
+   cd sihfrontend
+   ```
 
-# URL for the Django AI server
-VITE_DJANGO_API_URL=http://localhost:8000
+2. **Install Dependencies**
+   This project uses packages with peer dependency conflicts. Use the flag below:
 
-Running the Application
-Once the dependencies are installed and the environment variables are set, you can start the development server.
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
+3. **Configure Environment Variables**
+   Create a `.env` file in the root of the project:
+
+   ```env
+   # URL for the Node.js server
+   VITE_NODE_API_URL=http://localhost:4000
+
+   # URL for the Django AI server
+   VITE_DJANGO_API_URL=http://localhost:8000
+   ```
+
+---
+
+### ▶️ Running the Application
+
+Start the development server:
+
+```bash
 npm run dev
+```
 
-The application will now be running and accessible in your web browser, typically at http://localhost:5173.
+The app will be accessible at:
+👉 [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 📌 Notes
+
+* Ensure both **Node.js backend** and **Django AI backend** are running before starting the frontend.
+* Tailwind CSS ensures mobile responsiveness out of the box.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
