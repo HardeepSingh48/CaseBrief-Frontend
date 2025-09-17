@@ -2,14 +2,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/logoSih.svg";
 import styles from "./MainSideBar.module.css";
 import { LogOut } from "lucide-react";
-import { User, MessageCircle, Upload, NotebookPen } from "lucide-react";
+import { User, MessageCircle, Upload, NotebookPen, GraduationCap } from "lucide-react";
 import { useEffect, useState } from "react";
 import AuthAxios from "../../utils/authaxios";
 import toast from "react-hot-toast";
 import { MoonIcon, SunIcon } from "lucide-react";
 import AccessibilityButton from "../AccessibilityButton";
 import { Languages } from "lucide-react";
-const MainSideBar = ({setContrast}) => {
+
+const MainSideBar = ({ setContrast }) => {
   const location = useLocation();
   const router = useNavigate();
   const [showSource, setShowSource] = useState(false);
@@ -48,15 +49,30 @@ const MainSideBar = ({setContrast}) => {
     setDark((prevDark) => !prevDark);
   };
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  // Fixed active state checker
+  const isActive = (path) => {
+    if (path === "/") {
+      // For home route, check if it's exactly a chat ID pattern or just "/"
+      const pathParts = location.pathname.split("/");
+      return (
+        location.pathname === "/" || 
+        (pathParts.length === 2 && pathParts[1] && 
+         !pathParts[1].startsWith("upload") && 
+         !pathParts[1].startsWith("notebook") && 
+         !pathParts[1].startsWith("learning") &&
+         pathParts[1] !== "landing" &&
+         pathParts[1] !== "register" &&
+         pathParts[1] !== "login")
+      );
+    }
+    return location.pathname.startsWith(path);
+  };
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang); // Update the language state
     console.log("Language changed to:", lang);
-    
     // Set the language in localStorage
     localStorage.setItem("targetLanguage", lang);
-
     // Refresh the page to apply the changes
     window.location.reload();
     setShowSource(false); // Close the language dropdown
@@ -70,16 +86,16 @@ const MainSideBar = ({setContrast}) => {
     bn: "Bengali",
     mr: "Marathi",
     //add more languages and short codes here
-    pu : "Punjabi",
-    gu : "Gujarati",
-    or : "Oriya",
-    as : "Assamese",
-    ka : "Kannada",
-    ma : "Malayalam",
-    ur : "Urdu",
-    sa : "Sanskrit",
-    ne : "Nepali",
-    bh : "Bhojpuri",
+    pu: "Punjabi",
+    gu: "Gujarati",
+    or: "Oriya",
+    as: "Assamese",
+    ka: "Kannada",
+    ma: "Malayalam",
+    ur: "Urdu",
+    sa: "Sanskrit",
+    ne: "Nepali",
+    bh: "Bhojpuri",
   };
 
   return (
@@ -101,7 +117,6 @@ const MainSideBar = ({setContrast}) => {
             }}
           />
         </div>
-
         {/* Language Dropdown */}
         {showSource && (
           <div className="bg-white text-black absolute p-3 mt-2 rounded-xl shadow-lg w-32 z-10">
@@ -132,9 +147,7 @@ const MainSideBar = ({setContrast}) => {
           {/* Home */}
           <div
             className={`${styles.logoDiv} ${
-              isActive("/") && !isActive("/upload") && !isActive("/notebook")
-                ? "bg-PrimaryBlue p-1.5 rounded-xl"
-                : ""
+              isActive("/") ? "bg-PrimaryBlue p-1.5 rounded-xl" : ""
             }`}
             onClick={() => {
               router("/");
@@ -142,11 +155,7 @@ const MainSideBar = ({setContrast}) => {
           >
             <MessageCircle
               size={27}
-              color={`${
-                isActive("/") && !isActive("/upload") && !isActive("/notebook")
-                  ? "white"
-                  : "gray"
-              }`}
+              color={isActive("/") ? "white" : "gray"}
             />
           </div>
 
@@ -161,7 +170,7 @@ const MainSideBar = ({setContrast}) => {
           >
             <Upload
               size={27}
-              color={`${isActive("/upload") ? "white" : "gray"}`}
+              color={isActive("/upload") ? "white" : "gray"}
             />
           </div>
 
@@ -176,7 +185,22 @@ const MainSideBar = ({setContrast}) => {
           >
             <NotebookPen
               size={27}
-              color={`${isActive("/notebook") ? "white" : "gray"}`}
+              color={isActive("/notebook") ? "white" : "gray"}
+            />
+          </div>
+
+          {/* Learning Mode */}
+          <div
+            className={`${styles.logoDiv} ${
+              isActive("/learning") ? "bg-PrimaryBlue p-1.5 rounded-xl" : ""
+            }`}
+            onClick={() => {
+              router("/learning");
+            }}
+          >
+            <GraduationCap
+              size={27}
+              color={isActive("/learning") ? "white" : "gray"}
             />
           </div>
         </div>
@@ -188,11 +212,9 @@ const MainSideBar = ({setContrast}) => {
             {dark ? <MoonIcon /> : <SunIcon />}
           </button>
         </div>
-
         <div>
           <AccessibilityButton setIsContrast={setContrast} white={true} />
         </div>
-
         <div
           onClick={async () => {
             const response = await AuthAxios.get("/auth/logout");

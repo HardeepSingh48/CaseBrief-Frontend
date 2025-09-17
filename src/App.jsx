@@ -22,6 +22,10 @@ import AuthAxios from "./utils/authaxios";
 import NoteBookMain from "./components/notebook/NotebookPage";
 import { Pencil } from "lucide-react";
 import NotebookWriter from "./components/notebook/NoteBookWriter";
+import LearningModePage from "./views/LearningModePage";
+import SocraticTutorPage from "./views/SocraticTutorPage";
+import PromptPlaygroundPage from "./views/PromptPlaygroundPage";
+import ScenarioPage from "./views/ScenarioPage";
 
 const initialChats = [
   {
@@ -78,7 +82,7 @@ export default function App() {
     setActiveId(newChatId); // Set it as active
     navigate(`/${newChatId}`);
   };
-  
+
 
   // Redirect to a new chat ID if user lands on "/"
   useEffect(() => {
@@ -88,7 +92,7 @@ export default function App() {
   }, [location.pathname]);
 
   // Function to create a new chat
-  
+
 
   const setActiveChatId = (id) => {
     setActiveId(id);
@@ -121,6 +125,10 @@ export default function App() {
             <Route path="/notebook/:id" element={<NoteBookMain />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/learning" element={<LearningModePage />} />
+            <Route path="/learning/tutor" element={<SocraticTutorPage />} />
+            <Route path="/learning/scenario/:id" element={<ScenarioPage />} />
+            <Route path="/learning/playground" element={<PromptPlaygroundPage />} />
           </Routes>
         </div>
         {!(
