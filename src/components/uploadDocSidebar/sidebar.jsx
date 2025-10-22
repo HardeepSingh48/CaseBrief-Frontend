@@ -4,15 +4,19 @@ import upload from "../../assets/svgs/upload.svg";
 import UploadButton from "./blueButton";
 import DocumentListItem from "./upload-doc-list-item";
 import { SearchBar } from "../sidebar/search-bar";
+import AuthAxios from "../../utils/Authaxios";
 
 export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
   const navigate = useNavigate();
   const [filteredDocs, setFilteredDocs] = useState(docs); // State for filtered docs
 
   const f = async () => {
-    const res = await fetch("http://localhost:3000/api/doc");
-    const data = await res.json();
-    setFilteredDocs(data.data);
+    try {
+      const res = await AuthAxios.get("/doc");
+      setFilteredDocs(res.data.data);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+    }
   }
 
   useEffect(() => {

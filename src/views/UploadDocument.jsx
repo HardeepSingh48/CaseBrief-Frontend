@@ -3,7 +3,7 @@ import { Sidebar } from "../components/uploadDocSidebar/sidebar";
 import SummarySection from "../components/uploadDocSidebar/summary-section";
 import Loader from "../components/uploadDocSidebar/loader";
 import { v4 as uuidv4 } from "uuid";
-import AuthAxios from "../utils/authaxios";
+import AuthAxios from "../utils/Authaxios";
 import { useNavigate, useParams } from "react-router-dom";
 import chatTriangler from "../assets/svgs/chat-triangle.svg";
 import axios from "axios";
@@ -76,7 +76,9 @@ const UploadDocument = () => {
       console.log(text);
 
       const startTime = Date.now(); // Record the start time
-      const response = await fetch("http://127.0.0.1:8000/api/summarize/", {
+
+      // Call summarize API
+      const summarizeResponse = await fetch("http://127.0.0.1:8000/api/summarize/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,47 +88,58 @@ const UploadDocument = () => {
         }),
       });
 
-      const data = await response.json();
+      const summarizeData = await summarizeResponse.json();
+      console.log("Summarize API response:", summarizeData);
+
+      // Call judgement API
+      const judgementResponse = await fetch("http://127.0.0.1:8000/api/judgement/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input_text: text,
+        }),
+      });
+
+      const judgementData = await judgementResponse.json();
+      console.log("Judgement API response:", judgementData);
+
+      // Call LSI API for legal statutes
+      const lsiResponse = await fetch("http://127.0.0.1:8000/api/lsi/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input_text: text,
+        }),
+      });
+
+      const lsiData = await lsiResponse.json();
+      console.log("LSI API response:", lsiData);
+
       const duration = Date.now() - startTime;
 
       // Add 1 second to the API duration for smoother transition
       setLoadingStageTime(duration + 1000);
 
-      const generatedSummary = data?.summary_text || "";
-      setData(data);
+      const generatedSummary = summarizeData?.summary_text || "";
+      setData(summarizeData);
       setSummary(generatedSummary);
-      setPaths(data?.paths || []);
-      // Extract a few words from the summary for the title
-      const titleSnippet =
-        generatedSummary.split(" ").slice(0, 5).join(" ") + "...";
+      setPaths(summarizeData?.paths || []);
 
-      // Add the new document to the list
-
-      // setDocs((prevDocs) => [...prevDocs, newDoc]);
-      // setActiveDocId(newDoc.id);
-
-      // setLoadingJudgement(true);
-      // const judgementRes = await axios.post(
-      //   "http://127.0.0.1:8000/api/judgement/",
-      //   {
-      //     input_text: text,
-      //   }
-      // );
-      // setLoadingJudgement(false);
-      // const judgementdata = judgementRes.data?.result || "";
-      // setjudgement(judgementdata);
-
-      setjudgement(data.case_outcome);
-      setLsi(data.legalStatute);
+      setjudgement(judgementData?.result || "");
+      setLsi(lsiData?.statutes || {});
 
       // Finally, save everything using the /api/doc/ API
       await AuthAxios.post("http://localhost:3000/api/doc/", {
         documentId: newDoc.id,
         title: newDoc.title,
         summary: generatedSummary,
-        judgement: data.case_outcome,
-        statutes: data.legalStatute,
-        paths: data?.paths || [],
+        judgement: judgementData?.result || "",
+        statutes: lsiData?.statutes || {},
+        paths: summarizeData?.paths || [],
       })
         .then((response) => {
           const backendResponse = response.data; // Access the response data
@@ -218,20 +231,20 @@ const UploadDocument = () => {
       {loading && <Loader loadingStageTime={loadingStageTime} />}
 
       <div className="flex-1 gap-4  p-10 dark:bg-PrimaryBlack bg-PrimaryWhite max-h-[100vh] overflow-y-scroll">
-        {!loading && dummyJson?.summary_text && (
+        {!loading && summary && (
           <div className="">
             <h3 className="ml-5 mt-5 text-5xl font-extrabold ">Summary</h3>
             <p className="p-4 dark:bg-PrimaryGrayLight dark:text-white text-black bg-SecondaryWhite h-fit w-[80%] m-5 rounded-md">
-              {dummyJson?.summary_text}
+              {summary}
             </p>
           </div>
         )}
 
-        {!loadingJudgement && dummyJson?.case_outcome && (
+        {!loading && judgement && (
           <div className="">
             <h3 className="ml-5 mt-5 text-5xl font-extrabold ">Judgement</h3>
             <p className="p-4 dark:bg-PrimaryGrayLight dark:text-white text-black bg-SecondaryWhite h-fit w-[80%] m-5 rounded-md">
-              {dummyJson?.case_outcome}
+              {judgement}
             </p>
           </div>
         )}
@@ -246,66 +259,70 @@ const UploadDocument = () => {
 
         {console.log(data)}
 
-        <div className="pt-4 px-6 rounded-xl">
-          <h1 className="text-3xl py-2 font-extrabold dark:text-white text-black">
-            Law:
-          </h1>
+        {lsi && Object.keys(lsi).length > 0 && (
+          <div className="pt-4 px-6 rounded-xl">
+            <h1 className="text-3xl py-2 font-extrabold dark:text-white text-black">
+              Law:
+            </h1>
 
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {lsi && Object.keys(lsi).map((key) => (
-              <li key={key} style={{ marginBottom: "10px" }}>
-                {/* Button for Key */}
-                <button
-                  onClick={() => toggleKey(key)}
-                  style={{
-                    background: selectedKey === key ? "#393939" : "#494949",
-                    border: "none",
-                    padding: "10px",
-                    width: "100%",
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
-                  {key}
-                </button>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {Object.keys(lsi).map((key) => (
+                <li key={key} style={{ marginBottom: "10px" }}>
+                  {/* Button for Key */}
+                  <button
+                    onClick={() => setSelectedKey(selectedKey === key ? null : key)}
+                    style={{
+                      background: selectedKey === key ? "#ADD8E6" : "#D3D3D3",
+                      border: "none",
+                      padding: "10px",
+                      width: "100%",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      color: "#000",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {key}
+                  </button>
 
-                {/* Dropdown Content */}
-                <div
-                  style={{
-                    maxHeight: selectedKey === key ? "500px" : "0",
-                    overflow: "hidden",
-                    transition: "max-height 0.3s ease",
-                    background: "#f4f4f4",
-                    padding: selectedKey === key ? "10px" : "0",
-                    border: selectedKey === key ? "1px solid #ccc" : "none",
-                    borderTop: "none",
-                  }}
-                >
-                  {selectedKey === key && (
-                    <div
-                      dangerouslySetInnerHTML={{ __html: legalStatutes[key] }}
-                    />
-                  )}
+                  {/* Dropdown Content */}
+                  <div
+                    style={{
+                      maxHeight: selectedKey === key ? "500px" : "0",
+                      overflow: "hidden",
+                      transition: "max-height 0.3s ease",
+                      background: "#f4f4f4",
+                      padding: selectedKey === key ? "10px" : "0",
+                      border: selectedKey === key ? "1px solid #ccc" : "none",
+                      borderTop: "none",
+                    }}
+                  >
+                    {selectedKey === key && (
+                      <div
+                        dangerouslySetInnerHTML={{ __html: lsi[key] }}
+                      />
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {/* Display description */}
+            <div>
+              {selectedKey ? (
+                <div className="h-[100vh] min-w-[300px] fixed right-0">
+                  <h2>{selectedKey}</h2>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: lsi[selectedKey],
+                    }}
+                  />
                 </div>
-              </li>
-            ))}
-          </ul>
-          {/* Display description */}
-          <div>
-            {selectedKey ? (
-              <div className="h-[100vh] min-w-[300px] fixed right-0">
-                <h2>{selectedKey}</h2>
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: dummyJson?.legalStatute[selectedKey],
-                  }}
-                />
-              </div>
-            ) : (
-              <p>Select an item to see the details.</p>
-            )}
+              ) : (
+                <p>Select an item to see the details.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {paths && paths.length > 0 && (
           <div className="mt-4 pl-4">
@@ -313,7 +330,7 @@ const UploadDocument = () => {
               Prior Case Retrieval
             </h4>
             <div className="space-y-2">
-              {dummyJson?.paths.map((path, index) => (
+              {paths.map((path, index) => (
                 <div
                   key={index}
                   className="dark:bg-PrimaryGrayLight bg-SecondaryWhite rounded-xl p-3 flex justify-between items-center"
