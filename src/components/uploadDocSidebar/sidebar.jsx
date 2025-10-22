@@ -8,7 +8,7 @@ import AuthAxios from "../../utils/Authaxios";
 
 export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
   const navigate = useNavigate();
-  const [filteredDocs, setFilteredDocs] = useState(docs); // State for filtered docs
+  const [filteredDocs, setFilteredDocs] = useState(docs);
 
   const f = async () => {
     try {
@@ -23,11 +23,9 @@ export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
     f();
   }, []);
 
-
-  // Handle search input
   const handleSearch = (searchTerm) => {
     if (!searchTerm) {
-      setFilteredDocs(docs); // Reset to full docs list if search term is empty
+      setFilteredDocs(docs);
       return;
     }
     const lowercasedTerm = searchTerm.toLowerCase();
@@ -53,10 +51,10 @@ export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
           svg={upload}
           handleText={handlePdfText}
         />
-        <SearchBar onSearch={handleSearch} /> {/* Pass handleSearch to SearchBar */}
+        <SearchBar onSearch={handleSearch} />
       </div>
 
-      <div className="flex-1 overflow-y-auto pl-5  max-h-[75vh] min-h-[70vh] overflow-auto">
+      <div className="flex-1 overflow-y-auto pl-5 max-h-[75vh] min-h-[70vh] overflow-auto">
         {filteredDocs &&
           filteredDocs.length > 0 &&
           filteredDocs.map((doc) => (
@@ -70,9 +68,6 @@ export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
               }}
             />
           ))}
-        {/* {filteredDocs.length === 0 && (
-          <p className="text-gray-500 text-sm">No documents found.</p>
-        )} */}
       </div>
     </div>
   );
