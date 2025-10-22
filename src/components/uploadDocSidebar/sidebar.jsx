@@ -4,26 +4,28 @@ import upload from "../../assets/svgs/upload.svg";
 import UploadButton from "./blueButton";
 import DocumentListItem from "./upload-doc-list-item";
 import { SearchBar } from "../sidebar/search-bar";
+import AuthAxios from "../../utils/authaxios";  // ADD THIS
 
 export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
   const navigate = useNavigate();
-  const [filteredDocs, setFilteredDocs] = useState(docs); // State for filtered docs
+  const [filteredDocs, setFilteredDocs] = useState(docs);
 
   const f = async () => {
-    const res = await fetch("http://localhost:3000/api/doc");
-    const data = await res.json();
-    setFilteredDocs(data.data);
+    try {
+      const res = await AuthAxios.get("/doc");  // CHANGED THIS
+      setFilteredDocs(res.data.data);
+    } catch (error) {
+      console.error("Error fetching docs:", error);
+    }
   }
 
   useEffect(() => {
     f();
   }, []);
 
-
-  // Handle search input
   const handleSearch = (searchTerm) => {
     if (!searchTerm) {
-      setFilteredDocs(docs); // Reset to full docs list if search term is empty
+      setFilteredDocs(docs);
       return;
     }
     const lowercasedTerm = searchTerm.toLowerCase();
@@ -49,10 +51,10 @@ export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
           svg={upload}
           handleText={handlePdfText}
         />
-        <SearchBar onSearch={handleSearch} /> {/* Pass handleSearch to SearchBar */}
+        <SearchBar onSearch={handleSearch} />
       </div>
 
-      <div className="flex-1 overflow-y-auto pl-5  max-h-[75vh] min-h-[70vh] overflow-auto">
+      <div className="flex-1 overflow-y-auto pl-5 max-h-[75vh] min-h-[70vh] overflow-auto">
         {filteredDocs &&
           filteredDocs.length > 0 &&
           filteredDocs.map((doc) => (
@@ -66,9 +68,6 @@ export function Sidebar({ activeDocId, docs, onDocSelect, handlePdfText }) {
               }}
             />
           ))}
-        {/* {filteredDocs.length === 0 && (
-          <p className="text-gray-500 text-sm">No documents found.</p>
-        )} */}
       </div>
     </div>
   );
