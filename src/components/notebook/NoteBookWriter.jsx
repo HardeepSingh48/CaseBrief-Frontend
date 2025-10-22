@@ -10,6 +10,7 @@ const NotebookWriter = () => {
   const [editingSegment, setEditingSegment] = useState(null);
   const [newSegmentContent, setNewSegmentContent] = useState("");
   const [isAddingSegment, setIsAddingSegment] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const writerRef = useRef(null);
 
@@ -40,43 +41,52 @@ const NotebookWriter = () => {
       });
   }, []);
 
-  const handleNotebookSelect = (notebookId) => {
+  const handleNotebookSelect = async (notebookId) => {
     setSelectedNotebook(notebookId);
 
-    fetch(`http://localhost:3000/api/notebook/${notebookId}`, {
-      credentials: "include",
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setSegments(data.data.segments);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  const handleAddProject = () => {
-    const newNotebookTitle = prompt("Enter a title for the new project:");
-    if (newNotebookTitle) {
-      fetch("http://localhost:3000/api/notebook/create-notebook", {
+    try {
+      const response = await fetch(`http://localhost:3000/api/notebook/${notebookId}`, {
         credentials: "include",
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: newNotebookTitle }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setNotebooks([...notebooks, data.data]);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
+      });
+      const data = await response.json();
+      if (data.success && data.data && data.data.segments) {
+        setSegments(data.data.segments);
+      } else {
+        console.error("Failed to fetch notebook segments");
+        setSegments([]);
+      }
+    } catch (error) {
+      console.error("Error fetching notebook:", error);
+      setSegments([]);
+    }
+  };
+
+  const handleAddProject = async () => {
+    const newNotebookTitle = prompt("Enter a title for the new notebook:");
+    if (newNotebookTitle && newNotebookTitle.trim()) {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:3000/api/notebook/create-notebook", {
+          credentials: "include",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ title: newNotebookTitle.trim() }),
         });
+        const data = await response.json();
+        if (data.data) {
+          setNotebooks([...notebooks, data.data]);
+        }
+      } catch (error) {
+        console.error("Error creating notebook:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -86,32 +96,44 @@ const NotebookWriter = () => {
     setNewSegmentContent(segment?.notes || "");
   };
 
-  const saveEditedSegment = () => {
-    fetch(
-      `http://localhost:3000/api/notebook/${selectedNotebook}/update-segment/${editingSegment}`,
-      {
-        credentials: "include",
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ notes: newSegmentContent }),
-      }
-    )
-      .then(() => {
+  const saveEditedSegment = async () => {
+    if (!newSegmentContent.trim()) {
+      alert("Please enter some notes for the segment");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/notebook/${selectedNotebook}/update-segment/${editingSegment}`,
+        {
+          credentials: "include",
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notes: newSegmentContent.trim() }),
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
         setSegments(
           segments.map((segment) =>
             segment.segmentId === editingSegment
-              ? { ...segment, notes: newSegmentContent }
+              ? { ...segment, notes: newSegmentContent.trim() }
               : segment
           )
         );
         setEditingSegment(null);
         setNewSegmentContent("");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      } else {
+        console.error("Failed to update segment");
+      }
+    } catch (error) {
+      console.error("Error updating segment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAddSegment = () => {
@@ -125,30 +147,41 @@ const NotebookWriter = () => {
   // Assign the pathname to a constant if it matches either
   const matchedPathname = isUploadPath || isHomePath ? location.pathname : null;
 
-  const saveNewSegment = () => {
-    fetch(
-      `http://localhost:3000/api/notebook/${selectedNotebook}/add-segment`,
-      {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          notes: newSegmentContent,
-          link: matchedPathname,
-        }),
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
+  const saveNewSegment = async () => {
+    if (!newSegmentContent.trim()) {
+      alert("Please enter some notes for the segment");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/notebook/${selectedNotebook}/add-segment`,
+        {
+          credentials: "include",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            notes: newSegmentContent.trim(),
+            link: matchedPathname,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (data.success && data.data && data.data.segments) {
         setSegments(data.data.segments);
         setIsAddingSegment(false);
         setNewSegmentContent("");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      } else {
+        console.error("Failed to add segment");
+      }
+    } catch (error) {
+      console.error("Error adding segment:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -182,7 +215,9 @@ const NotebookWriter = () => {
             zIndex: 50,
           }}
         >
-          <h2 className="text-xl dark:text-PrimaryLight text-PrimaryBlack mb-4">Notebook Writer</h2>
+          <h2 className="text-xl dark:text-PrimaryLight text-PrimaryBlack mb-4">
+            Notebook Writer {isLoading && <span className="text-sm">(Loading...)</span>}
+          </h2>
 
           <select
             className="w-full p-2 mb-4 dark:bg-PrimaryGrayLight bg-SecondaryWhite dark:text-PrimaryLight text-black"

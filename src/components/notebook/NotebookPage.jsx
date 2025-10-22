@@ -13,22 +13,39 @@ const NoteBookMain = () => {
   // Fetch notebook details
   useEffect(() => {
     const fetchNotebook = async () => {
-      const res = await fetch(`http://localhost:3000/api/notebook/${id}`, {
-        credentials: "include",
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await res.json();
-      setData(data.data);
-      setTitle(data.data.title);
+      try {
+        const res = await fetch(`http://localhost:3000/api/notebook/${id}`, {
+          credentials: "include",
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setData(data.data);
+          setTitle(data.data.title);
+        } else {
+          console.error("Failed to fetch notebook:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching notebook:", error);
+      }
     };
 
-    fetchNotebook();
+    if (id) {
+      fetchNotebook();
+    }
   }, [id]);
 
   const navigate = useNavigate();
+
+  // Handle navigation to analysis page
+  const handleViewAnalysis = (link) => {
+    if (link) {
+      navigate(link);
+    }
+  };
 
   // Debounced save function
   const saveTitle = useCallback(
@@ -71,7 +88,7 @@ const NoteBookMain = () => {
   return (
     <div className="flex w-full">
       <Sidebar />
-      <div className="dark:bg-PrimaryBlack bg-PrimayWhite w-[60%] p-6">
+      <div className="dark:bg-PrimaryBlack bg-PrimaryWhite w-[60%] p-6">
         <input
           type="text"
           value={title}
@@ -91,11 +108,12 @@ const NoteBookMain = () => {
                   {segment.notes}
                 </pre>
                 {segment.link && (
-                   <p className="dark:bg-PrimaryGrayLighter bg-PrimaryWhite px-3 py-2 rounded-xl dark:text-PrimaryLight text-PrimaryBlack" onClick={()=>{
-                     navigate(segment.link);
-                   }}>
+                   <button
+                     className="dark:bg-PrimaryGrayLighter bg-PrimaryWhite px-3 py-2 rounded-xl dark:text-PrimaryLight text-PrimaryBlack hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors"
+                     onClick={() => handleViewAnalysis(segment.link)}
+                   >
                     View Analysis
-                   </p>
+                   </button>
                 )}
               </div>
             ))}

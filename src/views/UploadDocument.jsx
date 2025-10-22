@@ -171,11 +171,15 @@ const UploadDocument = () => {
       if (data.success) {
         setDocs(data.data);
         if (data.data.length > 0) {
-          // Automatically set the first document as active
-          const firstDoc = data.data[0];
-          setActiveDocId(firstDoc.id);
-          setSummary(firstDoc.summary || "");
-          setPaths(firstDoc.paths || []);
+          // Automatically set the first document as active or use the URL param
+          const targetDocId = id || data.data[0].id;
+          const targetDoc = data.data.find(d => d.id === targetDocId) || data.data[0];
+
+          setActiveDocId(targetDoc.id);
+          setSummary(targetDoc.summary || "");
+          setjudgement(targetDoc.judgement || "");
+          setLsi(targetDoc.statutes || {});
+          setPaths(targetDoc.paths || []);
         }
       } else {
         console.error("Failed to fetch documents");
@@ -191,6 +195,20 @@ const UploadDocument = () => {
     fetchDocs(); // Automatically fetches and sets the first document as active
   }, []);
 
+  // Load document data when component mounts or when id changes
+  useEffect(() => {
+    if (id && docs.length > 0) {
+      const doc = docs.find(d => d.id === id);
+      if (doc) {
+        setActiveDocId(id);
+        setSummary(doc.summary || "");
+        setjudgement(doc.judgement || "");
+        setLsi(doc.statutes || {});
+        setPaths(doc.paths || []);
+      }
+    }
+  }, [id, docs]);
+
   useEffect(() => {
     if (activeDocId) {
       const fetchActiveDoc = async () => {
@@ -200,6 +218,8 @@ const UploadDocument = () => {
           const data = res.data;
           if (data.success) {
             setSummary(data.data.summary || "");
+            setjudgement(data.data.judgement || "");
+            setLsi(data.data.statutes || {});
             setPaths(data.data.paths || []);
           } else {
             console.error("Failed to fetch the active document");

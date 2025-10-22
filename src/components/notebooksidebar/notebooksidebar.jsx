@@ -14,8 +14,8 @@ export function Sidebar({ activeNotebookId, notebooks, onNotebookSelect, onSearc
     setActiveIdMain(id);
   }, [id]);
 
-  const notebookSelect = (id) => {
-    navigate(`/notebook/${id}`);
+  const notebookSelect = (notebookId) => {
+    navigate(`/notebook/${notebookId}`);
   };
 
   useEffect(() => {
@@ -37,19 +37,25 @@ export function Sidebar({ activeNotebookId, notebooks, onNotebookSelect, onSearc
       });
   }, []);
 
-  const createNotebook = () => {
-    fetch("http://localhost:3000/api/notebook/create-notebook", {
-      credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
+  const createNotebook = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/notebook/create-notebook", {
+        credentials: "include",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title: "New Notebook" }),
+      });
+      const data = await response.json();
+      if (data.data) {
         setNotebookList((prevList) => [...prevList, data.data]);
-      })
-      .catch((error) => console.error("Error:", error));
+        // Navigate to the newly created notebook
+        navigate(`/notebook/${data.data.notebookId}`);
+      }
+    } catch (error) {
+      console.error("Error creating notebook:", error);
+    }
   };
 
   const handleSearch = (searchTerm) => {
@@ -76,13 +82,13 @@ export function Sidebar({ activeNotebookId, notebooks, onNotebookSelect, onSearc
       <div className="p-4">
         <h1 className="dark:text-gray-200 text-DarkBlue font-semibold">Your Notebooks</h1>
       </div>
-      <div
-        className="p-2 space-x-2 dark:text-white flex bg-PrimaryBlue w-[90%] items-center mx-auto rounded-md gap-2 justify-center"
+      <button
+        className="p-2 space-x-2 dark:text-white flex bg-PrimaryBlue w-[90%] items-center mx-auto rounded-md gap-2 justify-center hover:bg-blue-600 transition-colors"
         onClick={createNotebook}
       >
         <p>Create Notebook</p>
         <NotebookPen color="white" size={18} />
-      </div>
+      </button>
 
    
       <div className="mt-5 flex-1 flex flex-col  gap-4 overflow-y-auto pl-5 pt-3">
@@ -92,8 +98,8 @@ export function Sidebar({ activeNotebookId, notebooks, onNotebookSelect, onSearc
             <ChatListItem
               key={doc?.notebookId}
               title={doc?.title}
-              isActive={activeIdMain}
-              onClick={() => notebookSelect(doc?.notebookId)} // Corrected
+              isActive={activeIdMain === doc?.notebookId}
+              onClick={() => notebookSelect(doc?.notebookId)}
             />
           ))}
       </div>
